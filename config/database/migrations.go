@@ -1,0 +1,11 @@
+package database
+
+import (
+	"gorm.io/gorm"
+	"search-engine/app/models"
+)
+
+func autoMigrate(db *gorm.DB) error {
+	return db.AutoMigrate(
+		&models.QueryResult{})
+}
