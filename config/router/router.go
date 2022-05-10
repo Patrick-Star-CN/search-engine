@@ -8,6 +8,6 @@ func Init(r *gin.Engine) {
 
 	api := r.Group(pre)
 	{
-
+		searchRouterInit(api)
 	}
 }

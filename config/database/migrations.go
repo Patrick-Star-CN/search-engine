@@ -7,5 +7,6 @@ import (
 
 func autoMigrate(db *gorm.DB) error {
 	return db.AutoMigrate(
-		&models.QueryResult{})
+		&models.DocRaw{},
+		&models.DocID{})
 }
