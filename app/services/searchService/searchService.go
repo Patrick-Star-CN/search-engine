@@ -6,12 +6,21 @@ import (
 )
 
 func GetWebID(word string) (*models.DocID, error) {
-	var docIDs *models.DocID
+	var docID *models.DocID
 
-	result := database.DB.Where("word = ?", word).Find(docIDs)
+	result := database.DB.Where("word = ?", word).Find(docID)
 	if result.Error != nil {
 		return nil, result.Error
 	}
+	return docID, nil
+}
 
-	return docIDs, nil
+func GetWebDoc(id int) (*models.DocRaw, error) {
+	var docRaw *models.DocRaw
+
+	result := database.DB.Where("id = ?", id).Find(docRaw)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return docRaw, nil
 }
