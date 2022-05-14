@@ -1,8 +1,14 @@
 package wordCutter
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestWordCut(t *testing.T) {
 	output := WordCut("今天的人民日报")
-	println(output)
+	for _, word := range output {
+		fmt.Printf(" %s /", word)
+	}
+	fmt.Println()
 }
