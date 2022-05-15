@@ -6,5 +6,6 @@ import (
 )
 
 func searchRouterInit(r *gin.RouterGroup) {
-	r.Any("/api/search", searchController.Search)
+	r.GET("/search", searchController.Search)
+	r.GET("/cutData")
 }

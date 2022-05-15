@@ -4,7 +4,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"search-engine/app/apiExpection"
 	"search-engine/app/models"
-	"search-engine/app/services/searchService"
+	"search-engine/app/services/docIDService"
+	"search-engine/app/services/docRawService"
 	"search-engine/app/utils"
 	"search-engine/app/utils/wordCutter"
 	"sort"
@@ -25,7 +26,7 @@ func Search(c *gin.Context) {
 	var docs_ []models.DocRawScore
 
 	for _, value := range wordsSlice {
-		docID, err := searchService.GetWebID(value)
+		docID, err := docIDService.GetWebID(value)
 		if err != nil {
 			_ = c.AbortWithError(200, apiExpection.ServerError)
 		}
@@ -34,7 +35,7 @@ func Search(c *gin.Context) {
 			id, _ := strconv.Atoi(value)
 			v, found := docs[id]
 			if !found {
-				doc, err := searchService.GetWebDoc(id)
+				doc, err := docRawService.GetWebDoc(id)
 				if err != nil {
 					_ = c.AbortWithError(200, apiExpection.ServerError)
 				}

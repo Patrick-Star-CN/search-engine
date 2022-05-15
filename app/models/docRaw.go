@@ -1,10 +1,10 @@
 package models
 
 type DocRaw struct {
-	id      int
+	ID      int
 	URL     string
 	Title   string
-	Context string
+	Content string
 }
 
 type DocRawScore struct {
