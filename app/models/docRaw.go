@@ -6,8 +6,3 @@ type DocRaw struct {
 	Title   string
 	Content string
 }
-
-type DocRawScore struct {
-	DocRaw
-	Score int
-}

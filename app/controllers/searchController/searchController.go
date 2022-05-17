@@ -14,48 +14,59 @@ import (
 )
 
 type Response struct {
-	data   []models.DocRaw
-	length int
+	Data   []models.DocRaw
+	Length int
+}
+
+type DocIDs struct {
+	id    int
+	score int
 }
 
 func Search(c *gin.Context) {
 	var data Response
 	source := c.Query("word")
 	wordsSlice := wordCutter.WordCut(source)
-	docs := make(map[int]models.DocRawScore)
-	var docs_ []models.DocRawScore
+	docs := make(map[int]int)
 
 	for _, value := range wordsSlice {
 		docID, err := docIDService.GetWebID(value)
 		if err != nil {
 			_ = c.AbortWithError(200, apiExpection.ServerError)
 		}
+		if docID.Word != value {
+			continue
+		}
+
 		IDs := strings.Split(docID.ID, ";")
 		for _, value := range IDs {
 			id, _ := strconv.Atoi(value)
-			v, found := docs[id]
+			_, found := docs[id]
 			if !found {
-				doc, err := docRawService.GetWebDoc(id)
-				if err != nil {
-					_ = c.AbortWithError(200, apiExpection.ServerError)
-				}
-				docScore := models.DocRawScore{DocRaw: *doc, Score: 1}
-				docs[id] = docScore
+				docs[id] = 1
 			} else {
-				v.Score++
+				docs[id]++
 			}
 		}
 	}
 
-	for _, value := range docs {
-		docs_ = append(docs_, value)
+	docs_ := make([]DocIDs, len(docs))
+	index := 0
+	for key, value := range docs {
+		docs_[index].id = key
+		docs_[index].score = value
+		index++
 	}
 	sort.SliceStable(docs_, func(i, j int) bool {
-		return docs_[i].Score > docs_[j].Score
+		return docs_[i].score > docs_[j].score
 	})
-	for _, value := range docs_ {
-		data.data = append(data.data, value.DocRaw)
+	for i := 0; i < 50 && i < len(docs_); i++ {
+		doc, err := docRawService.GetWebDoc(docs_[i].id)
+		if err != nil {
+			_ = c.AbortWithError(200, apiExpection.ServerError)
+		}
+		data.Data = append(data.Data, *doc)
 	}
-	data.length = len(docs_)
+	data.Length = len(docs_)
 	utils.JsonSuccessResponse(c, data)
 }
