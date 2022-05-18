@@ -11,7 +11,7 @@ func WordCut(source string) []string {
 	var wordsSlice []string
 	wordMap := make(map[string]int)
 
-	result := seg.CutForSearch(source, true)
+	result := seg.CutForSearch(source, false)
 
 	for {
 		w, ok := <-result

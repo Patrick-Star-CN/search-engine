@@ -26,6 +26,7 @@ type DocIDs struct {
 func Search(c *gin.Context) {
 	var data Response
 	source := c.Query("word")
+	paperNum := c.Query("paperNum")
 	wordsSlice := wordCutter.WordCut(source)
 	docs := make(map[int]int)
 
@@ -60,7 +61,9 @@ func Search(c *gin.Context) {
 	sort.SliceStable(docs_, func(i, j int) bool {
 		return docs_[i].score > docs_[j].score
 	})
-	for i := 0; i < 50 && i < len(docs_); i++ {
+
+	paperNum_, _ := strconv.Atoi(paperNum)
+	for i := 20 * (paperNum_ - 1); i < paperNum_*20 && i < len(docs_); i++ {
 		doc, err := docRawService.GetWebDoc(docs_[i].id)
 		if err != nil {
 			_ = c.AbortWithError(200, apiExpection.ServerError)
