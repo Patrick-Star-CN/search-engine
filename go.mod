@@ -6,10 +6,13 @@ require (
 	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-gonic/gin v1.7.1
 	github.com/spf13/viper v1.7.1
-	github.com/wangbin/jiebago v0.3.2
+	github.com/yanyiwu/gojieba v1.1.2
 	gorm.io/driver/mysql v1.0.6
 	gorm.io/gorm v1.21.9
+
 )
+
+replace github.com/yanyiwu/gojieba v1.1.2 => github.com/ttys3/gojieba v1.1.3
 
 require (
 	github.com/fsnotify/fsnotify v1.4.7 // indirect

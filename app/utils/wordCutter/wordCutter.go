@@ -1,28 +1,21 @@
 package wordCutter
 
-import (
-	"github.com/wangbin/jiebago"
-)
-
-var seg jiebago.Segmenter
+import "github.com/yanyiwu/gojieba"
 
 func WordCut(source string) []string {
-	Init()
+	x := gojieba.NewJieba()
+	defer x.Free()
 	var wordsSlice []string
 	wordMap := make(map[string]int)
 
-	result := seg.CutForSearch(source, false)
+	result := x.CutForSearch(source, false)
 
-	for {
-		w, ok := <-result
-		if !ok {
-			break
-		}
-		_, found := wordMap[w]
+	for _, v := range result {
+		_, found := wordMap[v]
 		if !found {
-			wordMap[w] = 1
+			wordMap[v] = 1
 		} else {
-			wordMap[w]++
+			wordMap[v]++
 		}
 	}
 
@@ -30,8 +23,4 @@ func WordCut(source string) []string {
 		wordsSlice = append(wordsSlice, k)
 	}
 	return wordsSlice
-}
-
-func Init() {
-	seg.LoadDictionary("dict.txt")
 }

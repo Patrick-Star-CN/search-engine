@@ -21,7 +21,7 @@ func GetWebDoc(id int) (*models.DocRaw, error) {
 func GetWebDocAll() ([]models.DocRaw, error) {
 	var docRaws []models.DocRaw
 
-	result := database.DB.Find(&docRaws)
+	result := database.DB.Where("id <= 1000").Find(&docRaws)
 	if result.Error != nil {
 		return nil, result.Error
 	}
