@@ -2,6 +2,8 @@ package searchController
 
 import (
 	"github.com/gin-gonic/gin"
+	"log"
+	"net/url"
 	"search-engine/app/apiExpection"
 	"search-engine/app/models"
 	"search-engine/app/services/docIDService"
@@ -23,17 +25,38 @@ type DocIDs struct {
 	score int
 }
 
+type SearchForm struct {
+	Word     string `json:"word"`
+	PaperNum int    `json:"paperNum"`
+}
+
 func Search(c *gin.Context) {
+	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
 	var data Response
-	source := c.Query("word")
-	paperNum := c.Query("paperNum")
-	wordsSlice := wordCutter.WordCut(source)
+	var res SearchForm
+
+	errBind := c.ShouldBindJSON(&res)
+	if errBind != nil {
+		log.Println("request parameter error")
+		_ = c.AbortWithError(200, apiExpection.ParamError)
+		return
+	}
+
+	word, wordErr := url.QueryUnescape(res.Word)
+	var wordsSlice []string
+	if wordErr != nil {
+		wordsSlice = wordCutter.WordCut(res.Word)
+	} else {
+		wordsSlice = wordCutter.WordCut(word)
+	}
 	docs := make(map[int]int)
 
 	for _, value := range wordsSlice {
 		docID, err := docIDService.GetWebID(value)
 		if err != nil {
+			log.Println("table web_id error")
 			_ = c.AbortWithError(200, apiExpection.ServerError)
+			return
 		}
 		if docID.Word != value {
 			continue
@@ -62,11 +85,12 @@ func Search(c *gin.Context) {
 		return docs_[i].score > docs_[j].score
 	})
 
-	paperNum_, _ := strconv.Atoi(paperNum)
-	for i := 20 * (paperNum_ - 1); i < paperNum_*20 && i < len(docs_); i++ {
+	for i := 10 * (res.PaperNum - 1); i < res.PaperNum*10 && i < len(docs_); i++ {
 		doc, err := docRawService.GetWebDoc(docs_[i].id)
 		if err != nil {
+			log.Println("table web_doc error")
 			_ = c.AbortWithError(200, apiExpection.ServerError)
+			return
 		}
 		data.Data = append(data.Data, *doc)
 	}
