@@ -42,7 +42,9 @@ func Search(c *gin.Context) {
 		return
 	}
 
-	word, wordErr := url.QueryUnescape(res.Word)
+	words := strings.Split(res.Word, "-")
+
+	word, wordErr := url.QueryUnescape(words[0])
 	var wordsSlice []string
 	if wordErr != nil {
 		wordsSlice = wordCutter.WordCut(res.Word)
@@ -70,6 +72,25 @@ func Search(c *gin.Context) {
 				docs[id] = 1
 			} else {
 				docs[id]++
+			}
+		}
+	}
+
+	if len(words) > 1 {
+		docID, err := docIDService.GetWebID(words[1])
+		if err != nil {
+			log.Println("table web_id error")
+			_ = c.AbortWithError(200, apiExpection.ServerError)
+			return
+		}
+		if docID.Word == words[1] {
+			IDs := strings.Split(docID.ID, ";")
+			for _, value := range IDs {
+				id, _ := strconv.Atoi(value)
+				_, found := docs[id]
+				if found {
+					delete(docs, id)
+				}
 			}
 		}
 	}

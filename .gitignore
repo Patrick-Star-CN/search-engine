@@ -24,6 +24,7 @@ _roadhog-api-doc
 package.json
 package-lock.json
 config.yaml
+/dict
 
 # production
 /dist
