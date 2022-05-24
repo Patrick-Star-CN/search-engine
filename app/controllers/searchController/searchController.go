@@ -134,7 +134,7 @@ func Search(c *gin.Context) {
 		data.Data = append(data.Data, *doc)
 	}
 	data.Length = len(docs_)
-	utils.JsonSuccessResponse(c, data)
+	utils.JsonSuccessResponse(c, "SUCCESS", data)
 }
 
 func SubmitHistory(c *gin.Context) {
@@ -203,7 +203,7 @@ func SubmitHistory(c *gin.Context) {
 		}
 	}
 
-	utils.JsonSuccessResponse(c, nil)
+	utils.JsonSuccessResponse(c, "SUCCESS", nil)
 }
 
 func GetHistory(c *gin.Context) {
@@ -223,7 +223,7 @@ func GetHistory(c *gin.Context) {
 		return
 	}
 	if wordMap.PreWord != word {
-		utils.JsonSuccessResponse(c, nil)
+		utils.JsonSuccessResponse(c, "SUCCESS", nil)
 		return
 	}
 
@@ -241,5 +241,5 @@ func GetHistory(c *gin.Context) {
 	for i, re := range res {
 		words[i] = re.word
 	}
-	utils.JsonSuccessResponse(c, words)
+	utils.JsonSuccessResponse(c, "SUCCESS", words)
 }
