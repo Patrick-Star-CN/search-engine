@@ -12,6 +12,7 @@ import (
 )
 
 func CutData(c *gin.Context) {
+	// 将数据源中的title进行切词，然后保存到切词映射表中
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
 	docRaws, err := docRawService.GetWebDocAll()
 	if err != nil {

@@ -46,6 +46,7 @@ func Search(c *gin.Context) {
 	var data ResponseDoc
 	var req SearchForm
 
+	// 绑定请求到结构体
 	errBind := c.ShouldBindJSON(&req)
 	if errBind != nil {
 		log.Println("request parameter error")
@@ -53,8 +54,10 @@ func Search(c *gin.Context) {
 		return
 	}
 
+	// 过滤词在“-”后面，切词处理
 	words := strings.Split(req.Word, "-")
 
+	// 判断是否需要解码，需要就解，并且调用jieba进行切词
 	word, wordErr := url.QueryUnescape(words[0])
 	var wordsSlice []string
 	if wordErr != nil {
@@ -64,6 +67,7 @@ func Search(c *gin.Context) {
 	}
 	docs := make(map[int]int)
 
+	// 切出来的每一个词都调用映射表获取对应的id，且统计各个id出现的次数以此判断关联性
 	for _, value := range wordsSlice {
 		docID, err := docIDService.GetWebID(value)
 		if err != nil {
@@ -87,6 +91,7 @@ func Search(c *gin.Context) {
 		}
 	}
 
+	// 如果存在“-”符号就在获取到的idMap中删除与过滤词有关的
 	if len(words) > 1 {
 		docID, err := docIDService.GetWebID(words[1])
 		if err != nil {
@@ -106,6 +111,7 @@ func Search(c *gin.Context) {
 		}
 	}
 
+	// 将map转换为切片数组，然后按出现次数进行排序
 	docs_ := make([]DocIDs, len(docs))
 	index := 0
 	for key, value := range docs {
@@ -117,6 +123,7 @@ func Search(c *gin.Context) {
 		return docs_[i].score > docs_[j].score
 	})
 
+	// 获取页码对应的十条数据
 	for i := 10 * (req.PaperNum - 1); i < req.PaperNum*10 && i < len(docs_); i++ {
 		doc, err := docRawService.GetWebDoc(docs_[i].id)
 		if err != nil {
@@ -142,6 +149,7 @@ func SubmitHistory(c *gin.Context) {
 		return
 	}
 
+	// 去除过滤词，查询映射表中是否已有对应数据
 	req.PreWord = strings.Split(req.PreWord, "-")[0]
 	req.Word = strings.Split(req.Word, "-")[0]
 	wordMap, e := wordMapService.GetMap(req.PreWord)
@@ -151,10 +159,12 @@ func SubmitHistory(c *gin.Context) {
 		return
 	}
 	if wordMap.PreWord == req.PreWord {
+		// 映射表中已存在前一次搜索词的映射
 		var num string
 		flag := true
 		words := strings.Split(wordMap.Word, ";")
 		for i, word := range words {
+			// 判断前搜索词与现搜索词的映射是否已存在，是则给该映射权重+1
 			if word == req.Word {
 				nums := strings.Split(wordMap.Num, ";")
 				num_, _ := strconv.Atoi(nums[i])
@@ -169,6 +179,7 @@ func SubmitHistory(c *gin.Context) {
 			data.PreWord = wordMap.PreWord
 			data.Word = wordMap.Word
 		} else {
+			// 映射不存在则新加一条映射
 			data.Num = wordMap.Num + ";1"
 			data.PreWord = wordMap.PreWord
 			data.Word = wordMap.Word + ";" + req.Word
@@ -180,6 +191,7 @@ func SubmitHistory(c *gin.Context) {
 			return
 		}
 	} else {
+		// 前搜索词不存在映射，新建映射
 		data.Num = "1"
 		data.PreWord = req.PreWord
 		data.Word = req.Word
@@ -195,11 +207,15 @@ func SubmitHistory(c *gin.Context) {
 }
 
 func GetHistory(c *gin.Context) {
+	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
+	// 获取参数并转码
 	word_ := c.Query("word")
 	word, e := url.QueryUnescape(word_)
 	if e != nil {
 		word = word_
 	}
+
+	// 查询是否存在本次搜索词对应的映射，不存在则返回空
 	wordMap, err := wordMapService.GetMap(word)
 	if err != nil {
 		log.Println("table word_map error")
@@ -211,6 +227,7 @@ func GetHistory(c *gin.Context) {
 		return
 	}
 
+	// 将映射切片并排序
 	words := strings.Split(wordMap.Word, ";")
 	nums := strings.Split(wordMap.Num, ";")
 	res := make([]Relation, len(words))
