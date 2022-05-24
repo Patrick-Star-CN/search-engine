@@ -7,7 +7,8 @@ import (
 )
 
 func searchRouterInit(r *gin.RouterGroup) {
-	r.Any("/search", searchController.Search)
+	r.POST("/search", searchController.Search)
 	r.GET("/cutData", cutDataController.CutData)
 	r.POST("/submitHistory", searchController.SubmitHistory)
+	r.GET("/getRelated", searchController.GetHistory)
 }

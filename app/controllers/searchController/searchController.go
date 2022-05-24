@@ -21,6 +21,11 @@ type ResponseDoc struct {
 	Length int
 }
 
+type Relation struct {
+	word string
+	num  int
+}
+
 type DocIDs struct {
 	id    int
 	score int
@@ -186,5 +191,38 @@ func SubmitHistory(c *gin.Context) {
 		}
 	}
 
-	utils.JsonSuccessResponse(c, "")
+	utils.JsonSuccessResponse(c, nil)
+}
+
+func GetHistory(c *gin.Context) {
+	word_ := c.Query("word")
+	word, e := url.QueryUnescape(word_)
+	if e != nil {
+		word = word_
+	}
+	wordMap, err := wordMapService.GetMap(word)
+	if err != nil {
+		log.Println("table word_map error")
+		_ = c.AbortWithError(200, apiExpection.ServerError)
+		return
+	}
+	if wordMap.PreWord != word {
+		utils.JsonSuccessResponse(c, nil)
+		return
+	}
+
+	words := strings.Split(wordMap.Word, ";")
+	nums := strings.Split(wordMap.Num, ";")
+	res := make([]Relation, len(words))
+	for i, s := range words {
+		res[i].num, _ = strconv.Atoi(nums[i])
+		res[i].word = s
+	}
+	sort.SliceStable(res, func(i, j int) bool {
+		return res[i].num > res[j].num
+	})
+	for i, re := range res {
+		words[i] = re.word
+	}
+	utils.JsonSuccessResponse(c, words)
 }
