@@ -8,6 +8,7 @@ import (
 	"search-engine/app/models"
 	"search-engine/app/services/docIDService"
 	"search-engine/app/services/docRawService"
+	"search-engine/app/services/wordMapService"
 	"search-engine/app/utils"
 	"search-engine/app/utils/wordCutter"
 	"sort"
@@ -15,7 +16,7 @@ import (
 	"strings"
 )
 
-type Response struct {
+type ResponseDoc struct {
 	Data   []models.DocRaw
 	Length int
 }
@@ -30,24 +31,29 @@ type SearchForm struct {
 	PaperNum int    `json:"paperNum"`
 }
 
+type HistoryForm struct {
+	PreWord string `json:"preWord"`
+	Word    string `json:"word"`
+}
+
 func Search(c *gin.Context) {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
-	var data Response
-	var res SearchForm
+	var data ResponseDoc
+	var req SearchForm
 
-	errBind := c.ShouldBindJSON(&res)
+	errBind := c.ShouldBindJSON(&req)
 	if errBind != nil {
 		log.Println("request parameter error")
 		_ = c.AbortWithError(200, apiExpection.ParamError)
 		return
 	}
 
-	words := strings.Split(res.Word, "-")
+	words := strings.Split(req.Word, "-")
 
 	word, wordErr := url.QueryUnescape(words[0])
 	var wordsSlice []string
 	if wordErr != nil {
-		wordsSlice = wordCutter.WordCut(res.Word)
+		wordsSlice = wordCutter.WordCut(req.Word)
 	} else {
 		wordsSlice = wordCutter.WordCut(word)
 	}
@@ -106,7 +112,7 @@ func Search(c *gin.Context) {
 		return docs_[i].score > docs_[j].score
 	})
 
-	for i := 10 * (res.PaperNum - 1); i < res.PaperNum*10 && i < len(docs_); i++ {
+	for i := 10 * (req.PaperNum - 1); i < req.PaperNum*10 && i < len(docs_); i++ {
 		doc, err := docRawService.GetWebDoc(docs_[i].id)
 		if err != nil {
 			log.Println("table web_doc error")
@@ -117,4 +123,68 @@ func Search(c *gin.Context) {
 	}
 	data.Length = len(docs_)
 	utils.JsonSuccessResponse(c, data)
+}
+
+func SubmitHistory(c *gin.Context) {
+	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
+	var req HistoryForm
+	var data models.WordMap
+
+	errBind := c.ShouldBindJSON(&req)
+	if errBind != nil {
+		log.Println("request parameter error")
+		_ = c.AbortWithError(200, apiExpection.ParamError)
+		return
+	}
+
+	req.PreWord = strings.Split(req.PreWord, "-")[0]
+	req.Word = strings.Split(req.Word, "-")[0]
+	wordMap, e := wordMapService.GetMap(req.PreWord)
+	if e != nil {
+		log.Println("table word_map error")
+		_ = c.AbortWithError(200, apiExpection.ServerError)
+		return
+	}
+	if wordMap.PreWord == req.PreWord {
+		var num string
+		flag := true
+		words := strings.Split(wordMap.Word, ";")
+		for i, word := range words {
+			if word == req.Word {
+				nums := strings.Split(wordMap.Num, ";")
+				num_, _ := strconv.Atoi(nums[i])
+				nums[i] = strconv.Itoa(num_ + 1)
+				num = strings.Join(nums, ";")
+				flag = false
+				break
+			}
+		}
+		if !flag {
+			data.Num = num
+			data.PreWord = wordMap.PreWord
+			data.Word = wordMap.Word
+		} else {
+			data.Num = wordMap.Num + ";1"
+			data.PreWord = wordMap.PreWord
+			data.Word = wordMap.Word + ";" + req.Word
+		}
+		err := wordMapService.UpdateMap(data)
+		if err != nil {
+			log.Println("table word_map error")
+			_ = c.AbortWithError(200, apiExpection.ServerError)
+			return
+		}
+	} else {
+		data.Num = "1"
+		data.PreWord = req.PreWord
+		data.Word = req.Word
+		err := wordMapService.CreatMap(data)
+		if err != nil {
+			log.Println("table word_map error")
+			_ = c.AbortWithError(200, apiExpection.ServerError)
+			return
+		}
+	}
+
+	utils.JsonSuccessResponse(c, "")
 }

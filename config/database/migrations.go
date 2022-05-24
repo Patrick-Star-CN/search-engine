@@ -8,5 +8,6 @@ import (
 func autoMigrate(db *gorm.DB) error {
 	return db.AutoMigrate(
 		&models.DocRaw{},
-		&models.DocID{})
+		&models.DocID{},
+		&models.WordMap{})
 }
