@@ -7,7 +7,13 @@ import (
 	"search-engine/app/models"
 	"search-engine/app/services/collectionService"
 	"search-engine/app/utils"
+	"strconv"
 )
+
+type collection struct {
+	URL   string `json:"url"`
+	Title string `json:"title"`
+}
 
 func SubmitCollection(c *gin.Context) {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
@@ -39,4 +45,25 @@ func SubmitCollection(c *gin.Context) {
 	}
 
 	utils.JsonSuccessResponse(c, "SUCCESS", nil)
+}
+
+func GetCollection(c *gin.Context) {
+	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
+	var data []collection
+	uid := c.Query("uid")
+	uid_, _ := strconv.Atoi(uid)
+
+	collections, err := collectionService.GetCollectionAll(uid_)
+	if err != nil {
+		log.Println("table collection error")
+		_ = c.AbortWithError(200, apiExpection.ServerError)
+		return
+	}
+
+	for _, v := range collections {
+		data = append(data, collection{
+			URL:   v.URL,
+			Title: v.Title})
+	}
+	utils.JsonSuccessResponse(c, "SUCCESS", data)
 }
