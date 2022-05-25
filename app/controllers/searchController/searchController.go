@@ -91,26 +91,6 @@ func Search(c *gin.Context) {
 		}
 	}
 
-	// 如果存在“-”符号就在获取到的idMap中删除与过滤词有关的
-	if len(words) > 1 {
-		docID, err := docIDService.GetWebID(words[1])
-		if err != nil {
-			log.Println("table web_id error")
-			_ = c.AbortWithError(200, apiExpection.ServerError)
-			return
-		}
-		if docID.Word == words[1] {
-			IDs := strings.Split(docID.ID, ";")
-			for _, value := range IDs {
-				id, _ := strconv.Atoi(value)
-				_, found := docs[id]
-				if found {
-					delete(docs, id)
-				}
-			}
-		}
-	}
-
 	// 将map转换为切片数组，然后按出现次数进行排序
 	docs_ := make([]DocIDs, len(docs))
 	index := 0
@@ -124,14 +104,19 @@ func Search(c *gin.Context) {
 	})
 
 	// 获取页码对应的十条数据
-	for i := 10 * (req.PaperNum - 1); i < req.PaperNum*10 && i < len(docs_); i++ {
+	i := 10 * (req.PaperNum - 1)
+	for j := 1; j < 10 && i < len(docs_); j++ {
 		doc, err := docRawService.GetWebDoc(docs_[i].id)
 		if err != nil {
 			log.Println("table web_doc error")
 			_ = c.AbortWithError(200, apiExpection.ServerError)
 			return
 		}
-		data.Data = append(data.Data, *doc)
+		i++
+		if !strings.ContainsAny(doc.Title, words[1]) {
+			// 如果过滤词且这条搜索结果中有过滤词就跳过
+			data.Data = append(data.Data, *doc)
+		}
 	}
 	data.Length = len(docs_)
 	utils.JsonSuccessResponse(c, "SUCCESS", data)

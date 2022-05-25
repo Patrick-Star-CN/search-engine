@@ -2,14 +2,12 @@ package wordCutter
 
 import (
 	"github.com/yanyiwu/gojieba"
-	"os"
 	"path"
-	"path/filepath"
 )
 
 func WordCut(source string) []string {
-	dictDir := path.Join(filepath.Dir(os.Args[0]), "dict")
-	//dictDir := path.Join("D:\\project\\search-engine", "dict")
+	//dictDir := path.Join(filepath.Dir(os.Args[0]), "dict")
+	dictDir := path.Join("D:\\project\\search-engine", "dict")
 	jiebaPath := path.Join(dictDir, "jieba.dict.utf8")
 	hmmPath := path.Join(dictDir, "hmm_model.utf8")
 	userPath := path.Join(dictDir, "user.dict.utf8")
