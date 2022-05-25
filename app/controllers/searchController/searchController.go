@@ -113,7 +113,7 @@ func Search(c *gin.Context) {
 			return
 		}
 		i++
-		if !strings.ContainsAny(doc.Title, words[1]) {
+		if (len(words) > 1 && !strings.ContainsAny(doc.Title, words[1])) || len(words) == 1 {
 			// 如果过滤词且这条搜索结果中有过滤词就跳过
 			data.Data = append(data.Data, *doc)
 		}
