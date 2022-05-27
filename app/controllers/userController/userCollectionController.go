@@ -10,9 +10,9 @@ import (
 	"strconv"
 )
 
-type collection struct {
-	URL   string `json:"url"`
-	Title string `json:"title"`
+type CollectionForm struct {
+	ID  []int `json:"id"`
+	UID int   `json:"uid"`
 }
 
 func SubmitCollection(c *gin.Context) {
@@ -49,7 +49,6 @@ func SubmitCollection(c *gin.Context) {
 
 func GetCollection(c *gin.Context) {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
-	var data []collection
 	uid := c.Query("uid")
 	uid_, _ := strconv.Atoi(uid)
 
@@ -60,10 +59,31 @@ func GetCollection(c *gin.Context) {
 		return
 	}
 
-	for _, v := range collections {
-		data = append(data, collection{
-			URL:   v.URL,
-			Title: v.Title})
+	utils.JsonSuccessResponse(c, "SUCCESS", gin.H{
+		"length": len(collections),
+		"data":   collections,
+	})
+}
+
+func DelCollection(c *gin.Context) {
+	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
+	var req CollectionForm
+
+	errBind := c.ShouldBindJSON(&req)
+	if errBind != nil {
+		log.Println("request parameter error")
+		_ = c.AbortWithError(200, apiExpection.ParamError)
+		return
 	}
-	utils.JsonSuccessResponse(c, "SUCCESS", data)
+
+	for _, i := range req.ID {
+		err := collectionService.DelCollection(i, req.UID)
+		if err != nil {
+			log.Println("table collection error")
+			_ = c.AbortWithError(200, apiExpection.ServerError)
+			return
+		}
+	}
+
+	utils.JsonSuccessResponse(c, "SUCCESS", nil)
 }

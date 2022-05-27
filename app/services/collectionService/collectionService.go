@@ -39,3 +39,16 @@ func CreateCollection(data models.Collection) error {
 	}
 	return nil
 }
+
+func DelCollection(id, uid int) error {
+	var collection models.Collection
+	result := database.DB.Where(
+		&models.Collection{
+			UID:   uid,
+			RawID: id,
+		}).Delete(&collection)
+	if result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

@@ -7,6 +7,7 @@ import (
 	"search-engine/app/midwares"
 	"search-engine/config/database"
 	"search-engine/config/router"
+	"search-engine/config/session"
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
 	r.NoMethod(midwares.HandleNotFound)
 	r.NoRoute(midwares.HandleNotFound)
 
+	session.Init(r)
 	router.Init(r)
 
 	err := r.Run()

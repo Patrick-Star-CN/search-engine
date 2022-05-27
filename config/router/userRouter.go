@@ -8,4 +8,5 @@ import (
 func userRouter(r *gin.RouterGroup) {
 	r.POST("/submitCollection", userController.SubmitCollection)
 	r.GET("/getCollection", userController.GetCollection)
+	r.POST("/deleteCollection", userController.DelCollection)
 }
