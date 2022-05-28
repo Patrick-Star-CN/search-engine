@@ -10,5 +10,6 @@ func autoMigrate(db *gorm.DB) error {
 		&models.DocRaw{},
 		&models.DocID{},
 		&models.WordMap{},
-		&models.Collection{})
+		&models.Collection{},
+		&models.User{})
 }

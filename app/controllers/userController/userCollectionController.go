@@ -6,8 +6,8 @@ import (
 	"search-engine/app/apiExpection"
 	"search-engine/app/models"
 	"search-engine/app/services/collectionService"
+	"search-engine/app/services/sessionService"
 	"search-engine/app/utils"
-	"strconv"
 )
 
 type CollectionForm struct {
@@ -19,6 +19,13 @@ func SubmitCollection(c *gin.Context) {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
 	var req models.Collection
 
+	user, errSession := sessionService.GetUserSession(c)
+	if errSession != nil {
+		log.Println("session error:" + errSession.Error())
+		_ = c.AbortWithError(200, apiExpection.NotLogin)
+		return
+	}
+
 	errBind := c.ShouldBindJSON(&req)
 	if errBind != nil {
 		log.Println("request parameter error")
@@ -26,7 +33,7 @@ func SubmitCollection(c *gin.Context) {
 		return
 	}
 
-	collection, err := collectionService.GetCollection(req.UID, req.URL)
+	collection, err := collectionService.GetCollection(user.ID, req.URL)
 	if err != nil {
 		log.Println("table collection error")
 		_ = c.AbortWithError(200, apiExpection.ServerError)
@@ -49,10 +56,14 @@ func SubmitCollection(c *gin.Context) {
 
 func GetCollection(c *gin.Context) {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
-	uid := c.Query("uid")
-	uid_, _ := strconv.Atoi(uid)
+	user, errSession := sessionService.GetUserSession(c)
+	if errSession != nil {
+		log.Println("session error:" + errSession.Error())
+		_ = c.AbortWithError(200, apiExpection.NotLogin)
+		return
+	}
 
-	collections, err := collectionService.GetCollectionAll(uid_)
+	collections, err := collectionService.GetCollectionAll(user.ID)
 	if err != nil {
 		log.Println("table collection error")
 		_ = c.AbortWithError(200, apiExpection.ServerError)
@@ -69,6 +80,13 @@ func DelCollection(c *gin.Context) {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
 	var req CollectionForm
 
+	user, errSession := sessionService.GetUserSession(c)
+	if errSession != nil {
+		log.Println("session error:" + errSession.Error())
+		_ = c.AbortWithError(200, apiExpection.NotLogin)
+		return
+	}
+
 	errBind := c.ShouldBindJSON(&req)
 	if errBind != nil {
 		log.Println("request parameter error")
@@ -77,7 +95,7 @@ func DelCollection(c *gin.Context) {
 	}
 
 	for _, i := range req.ID {
-		err := collectionService.DelCollection(i, req.UID)
+		err := collectionService.DelCollection(i, user.ID)
 		if err != nil {
 			log.Println("table collection error")
 			_ = c.AbortWithError(200, apiExpection.ServerError)

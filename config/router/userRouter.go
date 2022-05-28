@@ -6,7 +6,9 @@ import (
 )
 
 func userRouter(r *gin.RouterGroup) {
+	r.POST("/login", userController.Login)
+	r.POST("/register", userController.Register)
 	r.POST("/submitCollection", userController.SubmitCollection)
 	r.GET("/getCollection", userController.GetCollection)
-	r.POST("/deleteCollection", userController.DelCollection)
+	r.DELETE("/deleteCollection", userController.DelCollection)
 }

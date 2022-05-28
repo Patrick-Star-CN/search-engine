@@ -12,6 +12,7 @@ var (
 	ServerError  = NewError(http.StatusInternalServerError, 200500, "系统异常，请稍后重试!")
 	OpenIDError  = NewError(http.StatusInternalServerError, 200500, "系统异常，请稍后重试!")
 	ParamError   = NewError(http.StatusInternalServerError, 200501, "参数错误")
+	NotLogin     = NewError(http.StatusInternalServerError, 200502, "未登录")
 	HttpTimeout  = NewError(http.StatusInternalServerError, 200505, "系统异常，请稍后重试!")
 	RequestError = NewError(http.StatusInternalServerError, 200506, "系统异常，请稍后重试!")
 	NotFound     = NewError(http.StatusNotFound, 200404, http.StatusText(http.StatusNotFound))
