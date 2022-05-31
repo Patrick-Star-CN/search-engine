@@ -11,5 +11,7 @@ func autoMigrate(db *gorm.DB) error {
 		&models.DocID{},
 		&models.WordMap{},
 		&models.Collection{},
-		&models.User{})
+		&models.User{},
+		&models.ImgID{},
+		&models.ImgRaw{})
 }

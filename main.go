@@ -15,6 +15,7 @@ func main() {
 
 	r := gin.Default()
 	r.Use(cors.Default())
+	//r.Use(midwares.Cors())
 	r.Use(midwares.ErrHandler())
 	r.NoMethod(midwares.HandleNotFound)
 	r.NoRoute(midwares.HandleNotFound)

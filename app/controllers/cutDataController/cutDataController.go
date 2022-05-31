@@ -7,6 +7,8 @@ import (
 	"search-engine/app/models"
 	"search-engine/app/services/docIDService"
 	"search-engine/app/services/docRawService"
+	"search-engine/app/services/imgIDService"
+	"search-engine/app/services/imgRawService"
 	"search-engine/app/utils/wordCutter"
 	"strconv"
 )
@@ -46,6 +48,48 @@ func CutData(c *gin.Context) {
 				})
 				if err != nil {
 					log.Println("table web_id error")
+					_ = c.AbortWithError(200, apiExpection.ServerError)
+					return
+				}
+			}
+		}
+	}
+}
+
+func CutImgData(c *gin.Context) {
+	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
+	imgRaws, err := imgRawService.GetImgRawAll()
+	if err != nil {
+		log.Println("table img_raw error")
+		_ = c.AbortWithError(200, apiExpection.ServerError)
+		return
+	}
+	for _, v := range imgRaws {
+		words := wordCutter.WordCut(v.Title)
+		for _, value := range words {
+			imgID, err := imgIDService.GetImgID(value)
+			if err != nil {
+				log.Println("table img_id error")
+				_ = c.AbortWithError(200, apiExpection.ServerError)
+				return
+			}
+			if imgID.Word != value {
+				err := imgIDService.CreateImgID(models.ImgID{
+					Word: value,
+					ID:   strconv.Itoa(v.ID),
+				})
+				if err != nil {
+					log.Println("table img_id error")
+					_ = c.AbortWithError(200, apiExpection.ServerError)
+					return
+				}
+			} else {
+				err := imgIDService.UpdateImgID(value, models.ImgID{
+					Word: value,
+					ID:   imgID.ID + ";" + strconv.Itoa(v.ID),
+				})
+				if err != nil {
+					log.Println("table img_id error")
 					_ = c.AbortWithError(200, apiExpection.ServerError)
 					return
 				}
