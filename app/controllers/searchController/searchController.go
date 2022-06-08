@@ -112,7 +112,7 @@ func Search(c *gin.Context) {
 
 	// 获取页码对应的十条数据
 	i := 10 * (req.PaperNum - 1)
-	for j := 1; j < 10 && i < len(docs_); j++ {
+	for j := 0; j < 10 && i < len(docs_); j++ {
 		doc, err := docRawService.GetWebDoc(docs_[i].id)
 		if err != nil {
 			log.Println("table web_doc error")
@@ -300,7 +300,7 @@ func SearchImg(c *gin.Context) {
 
 	// 获取页码对应的十条数据
 	i := 10 * (req.PaperNum - 1)
-	for j := 1; j < 10 && i < len(imgs_); j++ {
+	for j := 0; j < 10 && i < len(imgs_); j++ {
 		img, err := imgRawService.GetImgRaw(imgs_[i].id)
 		if err != nil {
 			log.Println("table img_doc error")
