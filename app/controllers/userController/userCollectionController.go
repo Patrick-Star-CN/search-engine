@@ -15,9 +15,15 @@ type CollectionForm struct {
 	UID int   `json:"uid"`
 }
 
+type Collection struct {
+	RawID int    `json:"id"`
+	URL   string `json:"url"`
+	Title string `json:"title"`
+}
+
 func SubmitCollection(c *gin.Context) {
 	log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
-	var req models.Collection
+	var req Collection
 
 	user, errSession := sessionService.GetUserSession(c)
 	if errSession != nil {
@@ -44,7 +50,12 @@ func SubmitCollection(c *gin.Context) {
 		return
 	}
 
-	e := collectionService.CreateCollection(req)
+	e := collectionService.CreateCollection(models.Collection{
+		UID:   user.ID,
+		RawID: req.RawID,
+		URL:   req.URL,
+		Title: req.Title,
+	})
 	if e != nil {
 		log.Println("table collection error")
 		_ = c.AbortWithError(200, apiExpection.ServerError)
